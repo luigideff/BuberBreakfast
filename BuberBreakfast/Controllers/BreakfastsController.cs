@@ -18,7 +18,7 @@ namespace BuberBreakfast.Controllers
             return Ok(id);
         }
 
-        [HttpPut("/breakfasts")]
+        [HttpPut("/breakfasts/{id:guid}")]
         public IActionResult UpsertBreakfast(Guid id, UpsertBreakfastRequest request)
         {
             return Ok(request);
