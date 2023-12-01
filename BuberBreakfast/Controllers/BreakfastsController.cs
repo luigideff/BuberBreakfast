@@ -20,20 +20,19 @@ namespace BuberBreakfast.Controllers
         [HttpPost]
         public IActionResult CreateBreakfast(CreateBreakfastRequest request)
         {
-            var breakfest = new Breakfast(
-                Guid.NewGuid(),
-                request.Name,
-                request.Description,
-                request.StartDateTime,
-                request.EndDateTime,
-                DateTime.UtcNow,
-                request.Savory,
-                request.Sweet);
+            ErrorOr<Breakfast> requestToBreakfastResult = Breakfast.From(request);
 
-            ErrorOr<Created> createBreakfastResult = _breakfastService.CreateBreakfast(breakfest);
+            if (requestToBreakfastResult.IsError)
+            {
+                return Problem(requestToBreakfastResult.Errors);
+            }
+
+            var breakfast = requestToBreakfastResult.Value;
+
+            ErrorOr<Created> createBreakfastResult = _breakfastService.CreateBreakfast(breakfast);
 
             return createBreakfastResult.Match(
-                created => CreatedAsGetBreakfast(breakfest),
+                created => CreatedAsGetBreakfast(breakfast),
                 errors => Problem(errors));
         }        
 
@@ -50,20 +49,18 @@ namespace BuberBreakfast.Controllers
         [HttpPut("{id:guid}")]
         public IActionResult UpsertBreakfast(Guid id, UpsertBreakfastRequest request)
         {
-            var breakfest = new Breakfast(
-                id,
-                request.Name,
-                request.Description,
-                request.StartDateTime,
-                request.EndDateTime,
-                DateTime.UtcNow,
-                request.Savory,
-                request.Sweet);
+            ErrorOr<Breakfast> requestToBreakfastResult = Breakfast.From(id, request);
+            if (requestToBreakfastResult.IsError)
+            {
+                return Problem(requestToBreakfastResult.Errors);
+            }
 
-            ErrorOr<UpsertedBreakfast> upsertBreakfastResult = _breakfastService.UpsertBreakfast(breakfest);
+            var breakfast = requestToBreakfastResult.Value;
+
+            ErrorOr<UpsertedBreakfast> upsertBreakfastResult = _breakfastService.UpsertBreakfast(breakfast);
 
             return upsertBreakfastResult.Match(
-                upserted => upserted.IsNewlyCreated ? CreatedAsGetBreakfast(breakfest) : NoContent(),
+                upserted => upserted.IsNewlyCreated ? CreatedAsGetBreakfast(breakfast) : NoContent(),
                 errors => Problem(errors));
         }
 
