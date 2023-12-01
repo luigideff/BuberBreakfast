@@ -7,14 +7,16 @@ namespace BuberBreakfast.Services.Breakfasts
     public class BreakfastService : IBreakfastService
     {
         private static readonly Dictionary<Guid, Breakfast> _breakfasts = new Dictionary<Guid, Breakfast>();
-        public void CreateBreakfast(Breakfast breakfast) 
+        public ErrorOr<Created> CreateBreakfast(Breakfast breakfast) 
         {
             _breakfasts.Add(breakfast.Id, breakfast);
+            return Result.Created;
         }
 
-        public void DeleteBreakfast(Guid id)
+        public ErrorOr<Deleted> DeleteBreakfast(Guid id)
         {
             _breakfasts.Remove(id);
+            return Result.Deleted;
         }
 
         public ErrorOr<Breakfast> GetBreakfast(Guid id)
@@ -26,9 +28,12 @@ namespace BuberBreakfast.Services.Breakfasts
             return Errors.Breakfast.NotFound;
         }
 
-        public void UpsertBreakfast(Breakfast breakfest)
+        public ErrorOr<UpsertedBreakfast> UpsertBreakfast(Breakfast breakfest)
         {
+            var isNewlyCreated = !_breakfasts.ContainsKey(breakfest.Id);
             _breakfasts[breakfest.Id] = breakfest;
+
+            return new UpsertedBreakfast(isNewlyCreated);
         }
     }
 }
